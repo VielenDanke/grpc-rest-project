@@ -1,0 +1,85 @@
+syntax="proto3";
+
+package proto;
+
+option go_package="/proto;pb";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User Service";
+    version: "1.0";
+    description: "Purpose of the service is processing users";
+  };
+  schemes: HTTP;
+  host: "localhost:8080"
+  consumes: "application/json";
+  produces: "application/json";
+};
+
+message SaveUserRequest {
+  string inn = 1;
+  string companyIin = 2;
+  string fullName = 3;
+  string companyFullName = 4;
+}
+
+message SaveUserResponse {
+  string id = 1;
+}
+
+message ErrorNotFound {
+  string msg = 1;
+}
+
+message Error {
+  string msg = 1;
+}
+
+service User {
+  rpc SaveUser (SaveUserRequest) returns (SaveUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Save user";
+      operation_id: "SaveUser";
+      tags: "User";
+      responses: {
+        key: "201"
+        value: {
+          description: "User saved"
+          schema: {
+            json_schema: {
+              ref: ".proto.SaveUserResponse"
+            }
+          }
+        }
+      }
+      responses: {
+        key: "404"
+        value: {
+          description: "Company is not found"
+          schema: {
+            json_schema: {
+              ref: ".proto.ErrorNotFound"
+            }
+          }
+        }
+      }
+      responses: {
+        key: "500"
+        value: {
+          description: "Internal server error"
+          schema: {
+            json_schema: {
+              ref: ".proto.Error"
+            }
+          }
+        }
+      }
+    };
+  }
+}

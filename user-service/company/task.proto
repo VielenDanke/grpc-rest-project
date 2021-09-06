@@ -1,0 +1,85 @@
+syntax="proto3";
+
+package company;
+
+option go_package="/company;cp";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Company Service";
+      version: "1.0";
+      description: "Purpose of the service is searching for company by INN";
+    };
+    schemes: HTTP;
+    host: "localhost:9090"
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+message CompanyByIINRequest {
+    string inn = 1;
+}
+
+message CompanyByIINResponse {
+    string inn = 1;
+    string kpp = 2;
+    string name = 3;
+    string full_name = 4;
+}
+
+message ErrorNotFound {
+    string msg = 1;
+}
+
+message Error {
+    string msg = 1;
+}
+
+service CompanyService {
+    rpc CompanyByIIN (CompanyByIINRequest) returns (CompanyByIINResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/companies/{inn}"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            summary: "Get company by INN";
+            operation_id: "CompanyByIIN";
+            tags: "Company";
+            responses: {
+                key: "200"
+                value: {
+                    description: "Company is found"
+                    schema: {
+                        json_schema: {
+                            ref: ".proto.CompanyByIINResponse"
+                        }
+                    }
+                }
+            }
+            responses: {
+                key: "404"
+                value: {
+                    description: "Company is not found"
+                    schema: {
+                        json_schema: {
+                            ref: ".proto.ErrorNotFound"
+                        }
+                    }
+                }
+            }
+            responses: {
+                key: "500"
+                value: {
+                    description: "Internal server error"
+                    schema: {
+                        json_schema: {
+                            ref: ".proto.Error"
+                        }
+                    }
+                }
+            }
+        };
+    }
+}

@@ -1,0 +1,117 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Company Service",
+    "description": "Purpose of the service is searching for company by INN",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "CompanyService"
+    }
+  ],
+  "host": "localhost:9090",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/companies/{inn}": {
+      "get": {
+        "summary": "Get company by INN",
+        "operationId": "CompanyByIIN",
+        "responses": {
+          "200": {
+            "description": "Company is found",
+            "schema": {
+              "$ref": ".proto.CompanyByIINResponse"
+            }
+          },
+          "404": {
+            "description": "Company is not found",
+            "schema": {
+              "$ref": ".proto.ErrorNotFound"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": ".proto.Error"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "inn",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Company"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "companyCompanyByIINResponse": {
+      "type": "object",
+      "properties": {
+        "inn": {
+          "type": "string"
+        },
+        "kpp": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
