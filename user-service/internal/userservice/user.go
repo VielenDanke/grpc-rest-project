@@ -56,7 +56,6 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 			connUrl = v.ConnUrl
 		}
 	}
-
 	dial, dErr := grpc.Dial(connUrl, grpc.WithInsecure())
 
 	if dErr != nil {

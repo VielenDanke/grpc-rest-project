@@ -17,10 +17,42 @@ func NewUserRepository(pool *pgxpool.Pool) UserRepository {
 	return &UserRepositoryImpl{pool: pool}
 }
 
-func (u UserRepositoryImpl) SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error) {
+func (ur UserRepositoryImpl) FindAll(ctx context.Context) ([]*u.UserResponse, error) {
+	tx, txErr := ur.pool.BeginTx(ctx, pgx.TxOptions{
+		AccessMode: pgx.ReadOnly,
+	})
+	if txErr != nil {
+		return nil, txErr
+	}
+	rows, rowsErr := tx.Query(ctx, "select u.id, u.iin, u.fullname, u.company_bin from users u")
+
+	if rowsErr != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return nil, rbErr
+		}
+		return nil, rowsErr
+	}
+	users := make([]*u.UserResponse, 0)
+	for rows.Next() {
+		uResp := &u.UserResponse{}
+		if scErr := rows.Scan(&uResp.Id, &uResp.Iin, &uResp.FullName, &uResp.CompanyBin); scErr != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				return nil, rbErr
+			}
+			return nil, scErr
+		}
+		users = append(users, uResp)
+	}
+	if cErr := tx.Commit(ctx); cErr != nil {
+		return nil, cErr
+	}
+	return users, nil
+}
+
+func (ur UserRepositoryImpl) SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error) {
 	log.Println(fmt.Sprintf("User saved: %s. Company INN %s", sr.FullName, sr.CompanyBin))
 
-	tx, txErr := u.pool.BeginTx(ctx, pgx.TxOptions{
+	tx, txErr := ur.pool.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:   pgx.ReadCommitted,
 		AccessMode: pgx.ReadWrite,
 	})

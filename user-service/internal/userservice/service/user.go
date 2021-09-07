@@ -7,4 +7,5 @@ import (
 
 type UserService interface {
 	SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error)
+	FindAll(ctx context.Context) ([]*u.UserResponse, error)
 }

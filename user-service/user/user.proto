@@ -25,6 +25,15 @@ message SaveUserRequest {
   string fullName = 3;
 }
 
+message FindAllRequest {}
+
+message UserResponse {
+  string id = 1;
+  string iin = 2;
+  string fullName = 3;
+  string companyBin = 4;
+}
+
 message SaveUserResponse {
   string id = 1;
 }
@@ -38,6 +47,38 @@ message Error {
 }
 
 service User {
+  rpc FindAll (FindAllRequest) returns (stream UserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Find all users";
+      operation_id: "FindAll";
+      tags: "User";
+      responses: {
+        key: "200"
+        value: {
+          description: "Users fetched"
+          schema: {
+            json_schema: {
+              ref: ".user.UserResponse"
+            }
+          }
+        }
+      }
+      responses: {
+        key: "500"
+        value: {
+          description: "Internal server error"
+          schema: {
+            json_schema: {
+              ref: ".user.Error"
+            }
+          }
+        }
+      }
+    };
+  }
   rpc SaveUser (SaveUserRequest) returns (SaveUserResponse) {
     option (google.api.http) = {
       post: "/api/v1/users"

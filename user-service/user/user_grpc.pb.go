@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
+	FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (User_FindAllClient, error)
 	SaveUser(ctx context.Context, in *SaveUserRequest, opts ...grpc.CallOption) (*SaveUserResponse, error)
 }
 
@@ -27,6 +28,38 @@ type userClient struct {
 
 func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
+}
+
+func (c *userClient) FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (User_FindAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[0], "/user.User/FindAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userFindAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type User_FindAllClient interface {
+	Recv() (*UserResponse, error)
+	grpc.ClientStream
+}
+
+type userFindAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *userFindAllClient) Recv() (*UserResponse, error) {
+	m := new(UserResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *userClient) SaveUser(ctx context.Context, in *SaveUserRequest, opts ...grpc.CallOption) (*SaveUserResponse, error) {
@@ -42,6 +75,7 @@ func (c *userClient) SaveUser(ctx context.Context, in *SaveUserRequest, opts ...
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
+	FindAll(*FindAllRequest, User_FindAllServer) error
 	SaveUser(context.Context, *SaveUserRequest) (*SaveUserResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
@@ -50,6 +84,9 @@ type UserServer interface {
 type UnimplementedUserServer struct {
 }
 
+func (UnimplementedUserServer) FindAll(*FindAllRequest, User_FindAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method FindAll not implemented")
+}
 func (UnimplementedUserServer) SaveUser(context.Context, *SaveUserRequest) (*SaveUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveUser not implemented")
 }
@@ -64,6 +101,27 @@ type UnsafeUserServer interface {
 
 func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
 	s.RegisterService(&User_ServiceDesc, srv)
+}
+
+func _User_FindAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FindAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserServer).FindAll(m, &userFindAllServer{stream})
+}
+
+type User_FindAllServer interface {
+	Send(*UserResponse) error
+	grpc.ServerStream
+}
+
+type userFindAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *userFindAllServer) Send(m *UserResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _User_SaveUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -96,6 +154,12 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_SaveUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "FindAll",
+			Handler:       _User_FindAll_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "user.proto",
 }

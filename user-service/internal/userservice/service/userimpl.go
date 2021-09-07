@@ -18,6 +18,10 @@ func NewUserService(ur repository.UserRepository, cs cp.CompanyServiceClient) Us
 	return &UserServiceImpl{ur: ur, cs: cs}
 }
 
+func (u UserServiceImpl) FindAll(ctx context.Context) ([]*u.UserResponse, error) {
+	return u.ur.FindAll(ctx)
+}
+
 func (u UserServiceImpl) SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error) {
 	resp, respErr := u.cs.CompanyByBin(ctx, &cp.CompanyByBinRequest{Bin: sr.CompanyBin})
 
