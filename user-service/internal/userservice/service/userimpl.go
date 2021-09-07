@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	cp "github.com/vielendanke/grpc-rest-project/user-service/company"
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/repository"
 	u "github.com/vielendanke/grpc-rest-project/user-service/user"
+	"log"
 )
 
 type UserServiceImpl struct {
@@ -17,11 +19,12 @@ func NewUserService(ur repository.UserRepository, cs cp.CompanyServiceClient) Us
 }
 
 func (u UserServiceImpl) SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error) {
-	iin, respErr := u.cs.CompanyByIIN(ctx, &cp.CompanyByIINRequest{Inn: sr.CompanyIin})
+	resp, respErr := u.cs.CompanyByBin(ctx, &cp.CompanyByBinRequest{Bin: sr.CompanyBin})
+
+	log.Println(fmt.Sprintf("Name received %s", resp.GetName()))
 
 	if respErr != nil {
 		return "", respErr
 	}
-	sr.CompanyFullName = iin.GetFullName()
 	return u.ur.SaveUser(ctx, sr)
 }

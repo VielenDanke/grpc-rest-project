@@ -19,15 +19,12 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     produces: "application/json";
 };
 
-message CompanyByIINRequest {
-    string inn = 1;
+message CompanyByBinRequest {
+    string bin = 1;
 }
 
-message CompanyByIINResponse {
-    string inn = 1;
-    string kpp = 2;
+message CompanyByBinResponse {
     string name = 3;
-    string full_name = 4;
 }
 
 message ErrorNotFound {
@@ -39,13 +36,13 @@ message Error {
 }
 
 service CompanyService {
-    rpc CompanyByIIN (CompanyByIINRequest) returns (CompanyByIINResponse) {
+    rpc CompanyByBin (CompanyByBinRequest) returns (CompanyByBinResponse) {
         option (google.api.http) = {
-            get: "/api/v1/companies/{inn}"
+            get: "/api/v1/companies/{bin}"
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
             summary: "Get company by INN";
-            operation_id: "CompanyByIIN";
+            operation_id: "CompanyByBin";
             tags: "Company";
             responses: {
                 key: "200"

@@ -21,15 +21,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/companies/{inn}": {
+    "/api/v1/companies/{bin}": {
       "get": {
         "summary": "Get company by INN",
-        "operationId": "CompanyByIIN",
+        "operationId": "CompanyByBin",
         "responses": {
           "200": {
             "description": "Company is found",
             "schema": {
-              "$ref": "#/definitions/companyCompanyByIINResponse"
+              "$ref": ".company.CompanyByIINResponse"
             }
           },
           "404": {
@@ -53,7 +53,7 @@
         },
         "parameters": [
           {
-            "name": "inn",
+            "name": "bin",
             "in": "path",
             "required": true,
             "type": "string"
@@ -66,19 +66,10 @@
     }
   },
   "definitions": {
-    "companyCompanyByIINResponse": {
+    "companyCompanyByBinResponse": {
       "type": "object",
       "properties": {
-        "inn": {
-          "type": "string"
-        },
-        "kpp": {
-          "type": "string"
-        },
         "name": {
-          "type": "string"
-        },
-        "fullName": {
           "type": "string"
         }
       }

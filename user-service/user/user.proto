@@ -20,10 +20,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 message SaveUserRequest {
-  string inn = 1;
-  string companyIin = 2;
+  string iin = 1;
+  string companyBin = 2;
   string fullName = 3;
-  string companyFullName = 4;
 }
 
 message SaveUserResponse {

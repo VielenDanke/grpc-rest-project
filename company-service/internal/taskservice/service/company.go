@@ -7,5 +7,5 @@ import (
 )
 
 type TaskService interface {
-	CompanyByIIN(context.Context, *pb.CompanyByIINRequest) (*pb.CompanyByIINResponse, error)
+	CompanyByBin(context.Context, *pb.CompanyByBinRequest) (*pb.CompanyByBinResponse, error)
 }

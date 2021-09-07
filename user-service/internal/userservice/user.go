@@ -3,6 +3,7 @@ package userservice
 import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	cp "github.com/vielendanke/grpc-rest-project/user-service/company"
 	"github.com/vielendanke/grpc-rest-project/user-service/configs"
@@ -17,21 +18,58 @@ import (
 	"net/http"
 )
 
+func initDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
+	pgxCfg, cfgErr := pgxpool.ParseConfig(url)
+	if cfgErr != nil {
+		return nil, cfgErr
+	}
+	pool, pErr := pgxpool.ConnectConfig(ctx, pgxCfg)
+
+	if pErr != nil {
+		return nil, pErr
+	}
+	if pingErr := pool.Ping(ctx); pingErr != nil {
+		return nil, pingErr
+	}
+	return pool, nil
+}
+
 func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 	l, lErr := net.Listen("tcp", cfg.GRPC.Addr)
+
 	if lErr != nil {
 		return lErr
 	}
 	srv := grpc.NewServer()
-	ur := repository.NewUserRepository()
-	dial, dErr := grpc.Dial("localhost:9091", grpc.WithInsecure())
+
+	db, dbErr := initDB(ctx, cfg.DB.URL)
+
+	if dbErr != nil {
+		return dbErr
+	}
+	ur := repository.NewUserRepository(db)
+
+	var connUrl string
+
+	for _, v := range cfg.Services {
+		if v.Name == "company" {
+			connUrl = v.ConnUrl
+		}
+	}
+
+	dial, dErr := grpc.Dial(connUrl, grpc.WithInsecure())
+
 	if dErr != nil {
 		return dErr
 	}
 	cs := cp.NewCompanyServiceClient(dial)
+
 	ts := service.NewUserService(ur, cs)
+
 	u.RegisterUserServer(srv, handler.NewUserHandler(ts))
+
 	reflection.Register(srv)
+
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)
 	return srv.Serve(l)
 }

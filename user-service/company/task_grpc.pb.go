@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CompanyServiceClient interface {
-	CompanyByIIN(ctx context.Context, in *CompanyByIINRequest, opts ...grpc.CallOption) (*CompanyByIINResponse, error)
+	CompanyByBin(ctx context.Context, in *CompanyByBinRequest, opts ...grpc.CallOption) (*CompanyByBinResponse, error)
 }
 
 type companyServiceClient struct {
@@ -29,9 +29,9 @@ func NewCompanyServiceClient(cc grpc.ClientConnInterface) CompanyServiceClient {
 	return &companyServiceClient{cc}
 }
 
-func (c *companyServiceClient) CompanyByIIN(ctx context.Context, in *CompanyByIINRequest, opts ...grpc.CallOption) (*CompanyByIINResponse, error) {
-	out := new(CompanyByIINResponse)
-	err := c.cc.Invoke(ctx, "/company.CompanyService/CompanyByIIN", in, out, opts...)
+func (c *companyServiceClient) CompanyByBin(ctx context.Context, in *CompanyByBinRequest, opts ...grpc.CallOption) (*CompanyByBinResponse, error) {
+	out := new(CompanyByBinResponse)
+	err := c.cc.Invoke(ctx, "/company.CompanyService/CompanyByBin", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *companyServiceClient) CompanyByIIN(ctx context.Context, in *CompanyByII
 // All implementations must embed UnimplementedCompanyServiceServer
 // for forward compatibility
 type CompanyServiceServer interface {
-	CompanyByIIN(context.Context, *CompanyByIINRequest) (*CompanyByIINResponse, error)
+	CompanyByBin(context.Context, *CompanyByBinRequest) (*CompanyByBinResponse, error)
 	mustEmbedUnimplementedCompanyServiceServer()
 }
 
@@ -50,8 +50,8 @@ type CompanyServiceServer interface {
 type UnimplementedCompanyServiceServer struct {
 }
 
-func (UnimplementedCompanyServiceServer) CompanyByIIN(context.Context, *CompanyByIINRequest) (*CompanyByIINResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CompanyByIIN not implemented")
+func (UnimplementedCompanyServiceServer) CompanyByBin(context.Context, *CompanyByBinRequest) (*CompanyByBinResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompanyByBin not implemented")
 }
 func (UnimplementedCompanyServiceServer) mustEmbedUnimplementedCompanyServiceServer() {}
 
@@ -66,20 +66,20 @@ func RegisterCompanyServiceServer(s grpc.ServiceRegistrar, srv CompanyServiceSer
 	s.RegisterService(&CompanyService_ServiceDesc, srv)
 }
 
-func _CompanyService_CompanyByIIN_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CompanyByIINRequest)
+func _CompanyService_CompanyByBin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompanyByBinRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CompanyServiceServer).CompanyByIIN(ctx, in)
+		return srv.(CompanyServiceServer).CompanyByBin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/company.CompanyService/CompanyByIIN",
+		FullMethod: "/company.CompanyService/CompanyByBin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CompanyServiceServer).CompanyByIIN(ctx, req.(*CompanyByIINRequest))
+		return srv.(CompanyServiceServer).CompanyByBin(ctx, req.(*CompanyByBinRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -92,8 +92,8 @@ var CompanyService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CompanyServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CompanyByIIN",
-			Handler:    _CompanyService_CompanyByIIN_Handler,
+			MethodName: "CompanyByBin",
+			Handler:    _CompanyService_CompanyByBin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

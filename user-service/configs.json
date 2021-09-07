@@ -4,5 +4,14 @@
     },
     "grpc":{
         "addr":":8081"
-    }
+    },
+    "database": {
+        "url": "user=user password=password dbname=employees sslmode=disable host=localhost port=5432"
+    },
+    "services": [
+        {
+            "name": "company",
+            "conn_url": "localhost:9091"
+        }
+    ]
 }

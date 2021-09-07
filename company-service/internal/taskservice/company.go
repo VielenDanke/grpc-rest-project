@@ -3,7 +3,9 @@ package task
 import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/handler"
+	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/repository"
 	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/service"
 	"log"
 	"net"
@@ -16,13 +18,35 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+func initDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
+	cfg, pErr := pgxpool.ParseConfig(url)
+
+	if pErr != nil {
+		return nil, pErr
+	}
+	pool, cErr := pgxpool.ConnectConfig(ctx, cfg)
+
+	if cErr != nil {
+		return nil, cErr
+	}
+	if pingErr := pool.Ping(ctx); pingErr != nil {
+		return nil, pingErr
+	}
+	return pool, nil
+}
+
 func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 	l, lErr := net.Listen("tcp", cfg.GRPC.Addr)
 	if lErr != nil {
 		return lErr
 	}
 	srv := grpc.NewServer()
-	ts := service.NewTaskService()
+	pool, connErr := initDB(ctx, cfg.DB.URL)
+	if connErr != nil {
+		return connErr
+	}
+	r := repository.NewCompanyRepository(pool)
+	ts := service.NewTaskService(r)
 	cp.RegisterCompanyServiceServer(srv, handler.NewTaskHandler(ts))
 	reflection.Register(srv)
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)
