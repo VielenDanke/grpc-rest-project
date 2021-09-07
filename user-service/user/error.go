@@ -1,4 +1,4 @@
-package cp
+package u
 
 func (x *Error) Error() string {
 	return x.Msg

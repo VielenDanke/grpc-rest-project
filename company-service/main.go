@@ -39,11 +39,11 @@ func main() {
 	gr.Go(func() error {
 		return task.StartServerHTTP(errCtx, cfg)
 	})
-	errCh <- gr.Wait()
 	go func(ctx context.Context, errCh chan error) {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		errCh <- fmt.Errorf("%v", <-sigCh)
 	}(ctx, errCh)
+	errCh <- gr.Wait()
 	log.Printf("\nService terminated: %v", <-errCh)
 }

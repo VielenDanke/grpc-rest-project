@@ -4,7 +4,7 @@ import (
 	"context"
 	cp "github.com/vielendanke/grpc-rest-project/user-service/company"
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/repository"
-	pb "github.com/vielendanke/grpc-rest-project/user-service/proto"
+	u "github.com/vielendanke/grpc-rest-project/user-service/user"
 )
 
 type UserServiceImpl struct {
@@ -16,7 +16,7 @@ func NewUserService(ur repository.UserRepository, cs cp.CompanyServiceClient) Us
 	return &UserServiceImpl{ur: ur, cs: cs}
 }
 
-func (u UserServiceImpl) SaveUser(ctx context.Context, sr *pb.SaveUserRequest) (string, error) {
+func (u UserServiceImpl) SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error) {
 	iin, respErr := u.cs.CompanyByIIN(ctx, &cp.CompanyByIINRequest{Inn: sr.CompanyIin})
 
 	if respErr != nil {

@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	pb "github.com/vielendanke/grpc-rest-project/user-service/proto"
+	u "github.com/vielendanke/grpc-rest-project/user-service/user"
 )
 
 type UserRepository interface {
-	SaveUser(ctx context.Context, sr *pb.SaveUserRequest) (string, error)
+	SaveUser(ctx context.Context, sr *u.SaveUserRequest) (string, error)
 }

@@ -29,19 +29,19 @@
           "200": {
             "description": "Company is found",
             "schema": {
-              "$ref": ".proto.CompanyByIINResponse"
+              "$ref": "#/definitions/companyCompanyByIINResponse"
             }
           },
           "404": {
             "description": "Company is not found",
             "schema": {
-              "$ref": ".proto.ErrorNotFound"
+              "$ref": "#/definitions/companyErrorNotFound"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": ".proto.Error"
+              "$ref": "#/definitions/companyError"
             }
           },
           "default": {
@@ -79,6 +79,22 @@
           "type": "string"
         },
         "fullName": {
+          "type": "string"
+        }
+      }
+    },
+    "companyError": {
+      "type": "object",
+      "properties": {
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "companyErrorNotFound": {
+      "type": "object",
+      "properties": {
+        "msg": {
           "type": "string"
         }
       }

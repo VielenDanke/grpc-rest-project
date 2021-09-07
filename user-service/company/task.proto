@@ -53,7 +53,7 @@ service CompanyService {
                     description: "Company is found"
                     schema: {
                         json_schema: {
-                            ref: ".proto.CompanyByIINResponse"
+                            ref: ".company.CompanyByIINResponse"
                         }
                     }
                 }
@@ -64,7 +64,7 @@ service CompanyService {
                     description: "Company is not found"
                     schema: {
                         json_schema: {
-                            ref: ".proto.ErrorNotFound"
+                            ref: ".company.ErrorNotFound"
                         }
                     }
                 }
@@ -75,7 +75,7 @@ service CompanyService {
                     description: "Internal server error"
                     schema: {
                         json_schema: {
-                            ref: ".proto.Error"
+                            ref: ".company.Error"
                         }
                     }
                 }

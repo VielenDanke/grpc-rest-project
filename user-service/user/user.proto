@@ -1,8 +1,8 @@
 syntax="proto3";
 
-package proto;
+package user;
 
-option go_package="/proto;pb";
+option go_package="/user;u";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -42,6 +42,7 @@ service User {
   rpc SaveUser (SaveUserRequest) returns (SaveUserResponse) {
     option (google.api.http) = {
       post: "/api/v1/users"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Save user";
@@ -53,7 +54,7 @@ service User {
           description: "User saved"
           schema: {
             json_schema: {
-              ref: ".proto.SaveUserResponse"
+              ref: ".user.SaveUserResponse"
             }
           }
         }
@@ -64,7 +65,7 @@ service User {
           description: "Company is not found"
           schema: {
             json_schema: {
-              ref: ".proto.ErrorNotFound"
+              ref: ".user.ErrorNotFound"
             }
           }
         }
@@ -75,7 +76,7 @@ service User {
           description: "Internal server error"
           schema: {
             json_schema: {
-              ref: ".proto.Error"
+              ref: ".user.Error"
             }
           }
         }

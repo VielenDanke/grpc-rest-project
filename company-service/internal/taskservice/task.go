@@ -22,8 +22,7 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 		return lErr
 	}
 	srv := grpc.NewServer()
-	cli := &http.Client{}
-	ts := service.NewTaskService(cli)
+	ts := service.NewTaskService()
 	cp.RegisterCompanyServiceServer(srv, handler.NewTaskHandler(ts))
 	reflection.Register(srv)
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)

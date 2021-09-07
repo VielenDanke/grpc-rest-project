@@ -9,7 +9,7 @@ import (
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/handler"
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/repository"
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/service"
-	pb "github.com/vielendanke/grpc-rest-project/user-service/proto"
+	u "github.com/vielendanke/grpc-rest-project/user-service/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -30,7 +30,7 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 	}
 	cs := cp.NewCompanyServiceClient(dial)
 	ts := service.NewUserService(ur, cs)
-	pb.RegisterUserServer(srv, handler.NewUserHandler(ts))
+	u.RegisterUserServer(srv, handler.NewUserHandler(ts))
 	reflection.Register(srv)
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)
 	return srv.Serve(l)
@@ -47,7 +47,7 @@ func StartServerHTTP(ctx context.Context, cfg *configs.Config) error {
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(50000000)),
 	}
-	if regErr := pb.RegisterUserHandlerFromEndpoint(ctx, mux, cfg.GRPC.Addr, opts); regErr != nil {
+	if regErr := u.RegisterUserHandlerFromEndpoint(ctx, mux, cfg.GRPC.Addr, opts); regErr != nil {
 		return regErr
 	}
 	log.Printf("Starting HTTP server on: %s\n", cfg.HTTP.Addr)
