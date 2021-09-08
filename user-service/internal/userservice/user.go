@@ -13,9 +13,11 @@ import (
 	u "github.com/vielendanke/grpc-rest-project/user-service/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
 )
 
 func initDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
@@ -80,6 +82,9 @@ func StartServerHTTP(ctx context.Context, cfg *configs.Config) error {
 		}),
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}),
 	)
+	if pErr := mux.HandlePath(http.MethodPost, "/v1/files", fHandler); pErr != nil {
+		return pErr
+	}
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(50000000)),
@@ -89,4 +94,28 @@ func StartServerHTTP(ctx context.Context, cfg *configs.Config) error {
 	}
 	log.Printf("Starting HTTP server on: %s\n", cfg.HTTP.Addr)
 	return http.ListenAndServe(cfg.HTTP.Addr, wsproxy.WebsocketProxy(mux))
+}
+
+func fHandler(rw http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+	if err := r.ParseMultipartForm(1e6); err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	f, h, fErr := r.FormFile("file")
+	if fErr != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	data := r.FormValue("body")
+	log.Printf("Body: %s\n", data)
+	saveF, sfErr := os.OpenFile(h.Filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeDevice)
+	if sfErr != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if _, cErr := io.Copy(saveF, f); cErr != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
 }
