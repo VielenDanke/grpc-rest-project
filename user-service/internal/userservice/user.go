@@ -2,8 +2,14 @@ package userservice
 
 import (
 	"context"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpcopentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpcprometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	cp "github.com/vielendanke/grpc-rest-project/user-service/company"
 	"github.com/vielendanke/grpc-rest-project/user-service/configs"
@@ -42,8 +48,20 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 	if lErr != nil {
 		return lErr
 	}
-	srv := grpc.NewServer()
-
+	srv := grpc.NewServer(
+		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(
+			grpcprometheus.StreamServerInterceptor,
+			grpcrecovery.StreamServerInterceptor(),
+			grpcctxtags.StreamServerInterceptor(),
+			grpcopentracing.StreamServerInterceptor(),
+		)),
+		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
+			grpcprometheus.UnaryServerInterceptor,
+			grpcrecovery.UnaryServerInterceptor(),
+			grpcctxtags.UnaryServerInterceptor(),
+			grpcopentracing.UnaryServerInterceptor(),
+		)),
+	)
 	db, dbErr := initDB(ctx, cfg.DB.URL)
 
 	if dbErr != nil {
@@ -58,7 +76,16 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 			connUrl = v.ConnUrl
 		}
 	}
-	dial, dErr := grpc.Dial(connUrl, grpc.WithInsecure())
+	dial, dErr := grpc.Dial(
+		connUrl,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpcmiddleware.ChainUnaryClient(
+			grpcprometheus.UnaryClientInterceptor,
+		)),
+		grpc.WithStreamInterceptor(grpcmiddleware.ChainStreamClient(
+			grpcprometheus.StreamClientInterceptor,
+		)),
+	)
 
 	if dErr != nil {
 		return dErr
@@ -69,10 +96,19 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 
 	u.RegisterUserServer(srv, handler.NewUserHandler(ts))
 
+	grpcprometheus.Register(srv)
+
 	reflection.Register(srv)
 
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)
 	return srv.Serve(l)
+}
+
+func StartMetricsServer(cfg *configs.Config) error {
+	sv := http.NewServeMux()
+	sv.Handle("/metrics", promhttp.Handler())
+	log.Printf("Starting metrics server on: %s\n", cfg.Metrics.Addr)
+	return http.ListenAndServe(cfg.Metrics.Addr, sv)
 }
 
 func StartServerHTTP(ctx context.Context, cfg *configs.Config) error {

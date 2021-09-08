@@ -5,6 +5,9 @@
     "grpc":{
         "addr":":9091"
     },
+    "metrics": {
+        "addr": ":6061"
+    },
     "database": {
         "url": "user=user password=password dbname=employees sslmode=disable host=localhost port=5432"
     }

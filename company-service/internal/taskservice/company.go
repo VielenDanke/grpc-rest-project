@@ -2,8 +2,14 @@ package task
 
 import (
 	"context"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpcopentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpcprometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/handler"
 	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/repository"
 	"github.com/vielendanke/grpc-rest-project/company-service/internal/taskservice/service"
@@ -37,20 +43,48 @@ func initDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
 
 func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 	l, lErr := net.Listen("tcp", cfg.GRPC.Addr)
+
 	if lErr != nil {
 		return lErr
 	}
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.StreamInterceptor(grpcmiddleware.ChainStreamServer(
+			grpcprometheus.StreamServerInterceptor,
+			grpcrecovery.StreamServerInterceptor(),
+			grpcctxtags.StreamServerInterceptor(),
+			grpcopentracing.StreamServerInterceptor(),
+		)),
+		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
+			grpcprometheus.UnaryServerInterceptor,
+			grpcrecovery.UnaryServerInterceptor(),
+			grpcctxtags.UnaryServerInterceptor(),
+			grpcopentracing.UnaryServerInterceptor(),
+		)),
+	)
 	pool, connErr := initDB(ctx, cfg.DB.URL)
+
 	if connErr != nil {
 		return connErr
 	}
 	r := repository.NewCompanyRepository(pool)
+
 	ts := service.NewTaskService(r)
+
 	cp.RegisterCompanyServiceServer(srv, handler.NewTaskHandler(ts))
+
 	reflection.Register(srv)
+
+	grpcprometheus.Register(srv)
+
 	log.Printf("Starting GRPC server on: %s\n", cfg.GRPC.Addr)
 	return srv.Serve(l)
+}
+
+func StartMetricsServer(cfg *configs.Config) error {
+	sv := http.NewServeMux()
+	sv.Handle("/metrics", promhttp.Handler())
+	log.Printf("Starting metrics server on: %s\n", cfg.Metrics.Addr)
+	return http.ListenAndServe(cfg.Metrics.Addr, sv)
 }
 
 func StartServerHTTP(ctx context.Context, cfg *configs.Config) error {

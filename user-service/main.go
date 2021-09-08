@@ -39,6 +39,9 @@ func main() {
 	gr.Go(func() error {
 		return userservice.StartServerHTTP(errCtx, cfg)
 	})
+	gr.Go(func() error {
+		return userservice.StartMetricsServer(cfg)
+	})
 	go func(ctx context.Context, errCh chan error) {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)

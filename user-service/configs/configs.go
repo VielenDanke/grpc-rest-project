@@ -4,6 +4,10 @@ type DatabaseConfig struct {
 	URL string `json:"url"`
 }
 
+type MetricsConfig struct {
+	Addr string `json:"addr"`
+}
+
 type Service struct {
 	ConnUrl string `json:"conn_url"`
 	Name    string `json:"name"`
@@ -14,6 +18,7 @@ type Config struct {
 	GRPC     *ServerGRPC     `json:"grpc"`
 	DB       *DatabaseConfig `json:"database"`
 	Services []*Service      `json:"services"`
+	Metrics  *MetricsConfig  `json:"metrics"`
 }
 
 func NewConfig() *Config {
@@ -22,6 +27,7 @@ func NewConfig() *Config {
 		GRPC:     &ServerGRPC{},
 		DB:       &DatabaseConfig{},
 		Services: make([]*Service, 0),
+		Metrics:  &MetricsConfig{},
 	}
 }
 
