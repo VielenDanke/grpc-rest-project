@@ -145,7 +145,15 @@ func fHandler(rw http.ResponseWriter, r *http.Request, pathParams map[string]str
 	}
 	data := r.FormValue("body")
 	log.Printf("Body: %s\n", data)
-	saveF, sfErr := os.OpenFile(h.Filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeDevice)
+	saveF, sfErr := os.OpenFile(h.Filename, os.O_CREATE, os.ModeDevice)
+	if sfErr != nil {
+		rw.WriteHeader(http.StatusSeeOther)
+		_, wErr := rw.Write([]byte("File already exists"))
+		if wErr != nil {
+			log.Printf("Error write response %s\n", wErr.Error())
+		}
+		return
+	}
 	defer closeIO(saveF)
 	if sfErr != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
