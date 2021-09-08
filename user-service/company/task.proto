@@ -11,7 +11,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "Company Service";
       version: "1.0";
-      description: "Purpose of the service is searching for company by INN";
+      description: "Purpose of the service is searching for company by BIN";
     };
     schemes: HTTP;
     host: "localhost:9090"
