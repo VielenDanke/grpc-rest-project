@@ -24,7 +24,7 @@ message CompanyByBinRequest {
 }
 
 message CompanyByBinResponse {
-    string name = 2;
+    string name = 1;
 }
 
 message ErrorNotFound {
