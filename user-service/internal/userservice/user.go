@@ -102,6 +102,7 @@ func fHandler(rw http.ResponseWriter, r *http.Request, pathParams map[string]str
 		return
 	}
 	f, h, fErr := r.FormFile("file")
+	defer closeIO(f)
 	if fErr != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
@@ -109,6 +110,7 @@ func fHandler(rw http.ResponseWriter, r *http.Request, pathParams map[string]str
 	data := r.FormValue("body")
 	log.Printf("Body: %s\n", data)
 	saveF, sfErr := os.OpenFile(h.Filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeDevice)
+	defer closeIO(saveF)
 	if sfErr != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
@@ -118,4 +120,10 @@ func fHandler(rw http.ResponseWriter, r *http.Request, pathParams map[string]str
 		return
 	}
 	rw.WriteHeader(http.StatusOK)
+}
+
+func closeIO(closer io.Closer) {
+	if err := closer.Close(); err != nil {
+		log.Printf("Error closing resources: %s\n", err.Error())
+	}
 }
