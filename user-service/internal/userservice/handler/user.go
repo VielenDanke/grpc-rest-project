@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/vielendanke/grpc-rest-project/user-service/internal/userservice/service"
 	u "github.com/vielendanke/grpc-rest-project/user-service/user"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type User struct {
@@ -15,7 +16,7 @@ func NewUserHandler(srv service.UserService) *User {
 	return &User{srv: srv}
 }
 
-func (us *User) FindAll(_ *u.FindAllRequest, stream u.User_FindAllServer) error {
+func (us *User) FindAll(_ *emptypb.Empty, stream u.User_FindAllServer) error {
 	users, err := us.srv.FindAll(stream.Context())
 	if err != nil {
 		return err

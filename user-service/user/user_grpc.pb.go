@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -18,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
-	FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (User_FindAllClient, error)
+	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (User_FindAllClient, error)
 	SaveUser(ctx context.Context, in *SaveUserRequest, opts ...grpc.CallOption) (*SaveUserResponse, error)
 }
 
@@ -30,7 +31,7 @@ func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
 }
 
-func (c *userClient) FindAll(ctx context.Context, in *FindAllRequest, opts ...grpc.CallOption) (User_FindAllClient, error) {
+func (c *userClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (User_FindAllClient, error) {
 	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[0], "/user.User/FindAll", opts...)
 	if err != nil {
 		return nil, err
@@ -75,7 +76,7 @@ func (c *userClient) SaveUser(ctx context.Context, in *SaveUserRequest, opts ...
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
-	FindAll(*FindAllRequest, User_FindAllServer) error
+	FindAll(*emptypb.Empty, User_FindAllServer) error
 	SaveUser(context.Context, *SaveUserRequest) (*SaveUserResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
@@ -84,7 +85,7 @@ type UserServer interface {
 type UnimplementedUserServer struct {
 }
 
-func (UnimplementedUserServer) FindAll(*FindAllRequest, User_FindAllServer) error {
+func (UnimplementedUserServer) FindAll(*emptypb.Empty, User_FindAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method FindAll not implemented")
 }
 func (UnimplementedUserServer) SaveUser(context.Context, *SaveUserRequest) (*SaveUserResponse, error) {
@@ -104,7 +105,7 @@ func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
 }
 
 func _User_FindAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(FindAllRequest)
+	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
