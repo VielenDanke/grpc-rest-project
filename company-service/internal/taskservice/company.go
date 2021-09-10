@@ -83,6 +83,12 @@ func StartServerGRPS(ctx context.Context, cfg *configs.Config) error {
 func StartMetricsServer(cfg *configs.Config) error {
 	sv := http.NewServeMux()
 	sv.Handle("/metrics", promhttp.Handler())
+	sv.HandleFunc("/live", func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	})
+	sv.HandleFunc("/ready", func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	})
 	log.Printf("Starting metrics server on: %s\n", cfg.Metrics.Addr)
 	return http.ListenAndServe(cfg.Metrics.Addr, sv)
 }
